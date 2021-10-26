@@ -125,3 +125,42 @@ select x,y,z, case when x+y>z and x+z>y and y+z>x
 					else 'no'
 				end
 from tablet;
+
+--16. Find all unique city names that begin with vowels (a,e,i,o,u). This is an example of regex operators.
+select distinct city
+from station
+where city like '[a,e,i,o,u]%';
+
+--17. Query the Name of any student in STUDENTS who scored higher than 75 Marks. 
+-- Order your output by the last three characters of each name. If two or more students both have names ending in the same last three characters, 
+-- secondary sort them by ascending ID.
+select name
+from students
+where marks > 75
+order by right(name, 3) asc, id asc;
+
+--18. Query the sum of Northern Latitudes (LAT_N) from STATION having values greater than 38.7880 and less than 137.2345. 
+-- Truncate your answer to 4 decimal places.
+
+-- SQL server does not have a truncate function, similar to round. If we use round(x,4) here, it simply zeroes out the digits after the 4th decimal place, 
+-- but does not actually remove them. Using cast as decimal solves this issue. 
+select cast(sum(case when lat_n between 38.7880 and 137.2345 then lat_n else 0 end) as decimal(18,4)) as sum_lat_n
+from station;
+
+--19. Display node number and its type - root, inner or leaf. Sample data - 
+--| N  | P |
+--| 1  | 2 |
+--| 3  | 2 |
+--| 6  | 8 |
+--| 9  | 8 |
+--| 2  | 5 |
+--| 8  | 5 |
+--| 5  |   |
+
+select N, case when P is null then 'root'
+	       when N in (select distinct P from bst) then 'inner'
+	       else 'leaf'
+	       end
+from bst
+order by N;
+
