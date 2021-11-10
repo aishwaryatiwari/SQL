@@ -1,4 +1,5 @@
 --1. Second highest salary
+-- Returns null when no second highest rank exists
 
 select max(salary) from employee
 where salary < (select max(salary) from employee);
@@ -6,6 +7,7 @@ where salary < (select max(salary) from employee);
 --2. nth highest salary
 --dense rank is used here to ensure the duplicates, if any, in salary are handled apropriately. If we use row_number, we will not be
 --able to handle duplicates.
+-- Returns blank when no second highest rank exists
 
 select salary from 
 (select salary, dense_rank() over (order by salary desc) as dn
