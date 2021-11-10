@@ -1,5 +1,5 @@
 --This is an example of gaps and islands problem in SQL
--- Example : Return consecutively repeating status 'FREE' more than thrice from a movie theatre seat booking table as follows : 
+-- Example 1: Return consecutively repeating status 'FREE' more than thrice from a movie theatre seat booking table as follows : 
 --	||id_set | number  | status  ||      
 --	||-------|---------|---------||
 --	||1      | 000001  | ASSIGNED||
@@ -41,3 +41,24 @@ SELECT
   number
 FROM counted
 WHERE cnt >= 3;
+
+
+-- Example 2: Find which number appears atleast n times consecutively 
+-- ID	 Num	group_id	cnt
+--  1	   1	       0		3
+--  2	   1	       0		3
+--  3	   1	       0		3
+--  4	   2	       3		2
+--  5	   2	       3		2
+--  6	   3	       5		1
+--  7	   2	       4		1
+Select distinct sal 
+from (
+    Select id, sal, group_id, count(*) over (partition by sal, group_id) as cnt
+    from (
+        Select id, sal
+        , row_number() over (order by id) 
+        - row_number() over (partition by sal order by id) as group_id
+        from dbo.del)sub
+    )sub2
+where sub2.cnt >= n;
