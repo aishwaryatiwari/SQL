@@ -171,3 +171,35 @@ order by N;
 select cast(min(sqrt(power(a.x-b.x, 2) + power(a.y-b.y, 2))) as numeric(18,2)) shortest
 from point2d a
 join point2d b on not(a.x = b.x and a.y = b.y);
+
+
+-- 21. Input: 
+-- Seat table:
+-- +----+---------+
+-- | id | student |
+-- +----+---------+
+-- | 1  | Abbot   |
+-- | 2  | Doris   |
+-- | 3  | Emerson |
+-- | 4  | Green   |
+-- | 5  | Jeames  |
+-- +----+---------+
+-- Output: 
+-- +----+---------+
+-- | id | student |
+-- +----+---------+
+-- | 1  | Doris   |
+-- | 2  | Abbot   |
+-- | 3  | Green   |
+-- | 4  | Emerson |
+-- | 5  | Jeames  |
+-- +----+---------+
+-- Explanation: 
+-- Note that if the number of students is odd, there is no need to change the last one's seat.
+
+select case when id%2=0 then id-1 
+            when id%2 != 0 and id < (select max(id) from seat) then id+1
+            else id end as id
+, student
+from seat
+order by id asc;
