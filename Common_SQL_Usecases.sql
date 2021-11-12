@@ -166,3 +166,8 @@ select N, case when P is null then 'root'
 from bst
 order by N;
 
+--20. Find the shortest distance between any two points in the table. Euclidean distance. 
+-- Important to exclude distance calculation between the point and itself. Easier to exclude with a not(x and y) than using a confusing 'or' condition.
+select cast(min(sqrt(power(a.x-b.x, 2) + power(a.y-b.y, 2))) as numeric(18,2)) shortest
+from point2d a
+join point2d b on not(a.x = b.x and a.y = b.y);
