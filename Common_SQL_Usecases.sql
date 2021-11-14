@@ -237,3 +237,19 @@ from customer
 group by customer_id
 having count(distinct product_key) = (select count(product_key) from product);
 
+-- 23. List of customers who ordered atleast one of each 'A' and 'B', but none of 'C'
+
+SELECT a.customer_id, b.customer_name
+FROM orders a
+join customers b on a.customer_id = b.customer_id
+GROUP BY a.customer_id, b.customer_name
+HAVING sum(case when product_name = 'A' then 1 else 0 end) > 0
+   and sum(case when product_name = 'B' then 1 else 0 end) > 0 
+   and sum(case when product_name = 'C' then 1 else 0 end) = 0 ;
+   
+-- 24. List of customers who ordered atleast one of each 'A' and 'B'
+SELECT customer_id 
+FROM orders
+WHERE product_name in ('A','B')
+GROUP BY customer_id
+having count(distinct product_name) = 2;
