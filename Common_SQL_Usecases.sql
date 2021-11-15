@@ -332,7 +332,8 @@ group by a.user1_id, a.page_id ;
 -- 
 -- The cumulative salary summary for an employee can be calculated as follows:
 -- 
--- For each month that the employee worked, sum up the salaries in that month and the previous two months. This is their 3-month sum for that month. If an employee did not work for the company in previous months, their effective salary for those months is 0.
+-- For each month that the employee worked, sum up the salaries in that month and the previous two months. This is their 3-month sum for that month. 
+-- If an employee did not work for the company in previous months, their effective salary for those months is 0.
 -- Do not include the 3-month sum for the most recent month that the employee worked for in the summary.
 -- Do not include the 3-month sum for any month the employee did not work.
 -- Return the result table ordered by id in ascending order. In case of a tie, order it by month in descending order.
@@ -401,3 +402,45 @@ join emp_cte on emp_cte.id = e1.id
 left join Employee e2 on e1.id = e2.id and e1.month - 1 = e2.month
 left join Employee e3 on e3.id = e2.id and e2.month - 1 = e3.month
 where e1.month != emp_cte.max_mth ;
+
+
+-- 27. The install date of a player is the first login day of that player.
+-- We define day one retention of some date x to be the number of players whose install date is x and they logged back in on the day right after x,
+-- divided by the number of players whose install date is x, rounded to 2 decimal places.
+-- Write an SQL query to report for each install date, the number of players that installed the game on that day, and the day one retention.
+-- Input: 
+-- Activity table:
+-- +-----------+-----------+------------+--------------+
+-- | player_id | device_id | event_date | games_played |
+-- +-----------+-----------+------------+--------------+
+-- | 1         | 2         | 2016-03-01 | 5            |
+-- | 1         | 2         | 2016-03-02 | 6            |
+-- | 2         | 3         | 2017-06-25 | 1            |
+-- | 3         | 1         | 2016-03-01 | 0            |
+-- | 3         | 4         | 2016-07-03 | 5            |
+-- +-----------+-----------+------------+--------------+
+-- Output: 
+-- +------------+----------+----------------+
+-- | install_dt | installs | Day1_retention |
+-- +------------+----------+----------------+
+-- | 2016-03-01 | 2        | 0.50           |
+-- | 2017-06-25 | 1        | 0.00           |
+-- +------------+----------+----------------+
+-- Explanation: 
+-- Player 1 and 3 installed the game on 2016-03-01 but only player 1 logged back in on 2016-03-02 so the day 1 retention of 2016-03-01 is 1 / 2 = 0.50
+-- Player 2 installed the game on 2017-06-25 but didn't log back in on 2017-06-26 so the day 1 retention of 2017-06-25 is 0 / 1 = 0.00
+
+-- Notice that this is written for MySQL and in MySQL, division and rounding works to get the desired result of fraction rounded t 2 decimal places.
+-- Similar syntax may not work in SQL Server.
+
+with install_cte as (
+    select player_id, min(event_date) install_dt
+    from activity
+    group by player_id)
+select a.install_dt
+, count(a.player_id) as installs
+, round(count(b.player_id)/count(a.player_id), 2) as Day1_retention
+from install_cte a
+left join Activity b on a.player_id = b.player_id and a.install_dt + 1 = b.event_date
+group by a.install_dt
+order by 1;
