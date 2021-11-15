@@ -324,3 +324,80 @@ from user_frnd_page a
 left join Likes b on a.user1_id = b.user_id and a.page_id = b.page_id
 where b.page_id is null
 group by a.user1_id, a.page_id ; 
+
+
+-- 26. 
+
+-- Write an SQL query to calculate the cumulative salary summary for every employee in a single unified table.
+-- 
+-- The cumulative salary summary for an employee can be calculated as follows:
+-- 
+-- For each month that the employee worked, sum up the salaries in that month and the previous two months. This is their 3-month sum for that month. If an employee did not work for the company in previous months, their effective salary for those months is 0.
+-- Do not include the 3-month sum for the most recent month that the employee worked for in the summary.
+-- Do not include the 3-month sum for any month the employee did not work.
+-- Return the result table ordered by id in ascending order. In case of a tie, order it by month in descending order.
+-- 
+-- The query result format is in the following example.
+--Input: 
+--Employee table:
+--+----+-------+--------+
+--| id | month | salary |
+--+----+-------+--------+
+--| 1  | 1     | 20     |
+--| 2  | 1     | 20     |
+--| 1  | 2     | 30     |
+--| 2  | 2     | 30     |
+--| 3  | 2     | 40     |
+--| 1  | 3     | 40     |
+--| 3  | 3     | 60     |
+--| 1  | 4     | 60     |
+--| 3  | 4     | 70     |
+--| 1  | 7     | 90     |
+--| 1  | 8     | 90     |
+--+----+-------+--------+
+--Output: Incomplete - should include one record for  user 1, month 7, as explained in the explantion section below.
+--+----+-------+--------+
+--| id | month | Salary |
+--+----+-------+--------+
+--| 1  | 4     | 130    |
+--| 1  | 3     | 90     |
+--| 1  | 2     | 50     |
+--| 1  | 1     | 20     |
+--| 2  | 1     | 20     |
+--| 3  | 3     | 100    |
+--| 3  | 2     | 40     |
+--+----+-------+--------+
+--Explanation: 
+--Employee '1' has five salary records excluding their most recent month '8':
+--- 90 for month '7'.
+--- 60 for month '4'.
+--- 40 for month '3'.
+--- 30 for month '2'.
+--- 20 for month '1'.
+--So the cumulative salary summary for this employee is:
+--+----+-------+--------+
+--| id | month | salary |
+--+----+-------+--------+
+--| 1  | 7     | 90     |  (90 + 0 + 0)
+--| 1  | 4     | 130    |  (60 + 40 + 30)
+--| 1  | 3     | 90     |  (40 + 30 + 20)
+--| 1  | 2     | 50     |  (30 + 20 + 0)
+--| 1  | 1     | 20     |  (20 + 0 + 0)
+--+----+-------+--------+
+--Note that the 3-month sum for month '7' is 90 because they did not work during month '6' or month '5'.
+
+
+-- Note: Cannot using window functions like sum() over (preceding, ), lead, lag etc. because of missing months. 
+with emp_cte as (
+    select id
+    , max(month) max_mth
+    from Employee
+    group by id)
+select e1.id
+, e1.month
+, e1.salary + isnull(e2.salary,0) + isnull(e3.salary,0) Salary
+from Employee e1
+join emp_cte on emp_cte.id = e1.id
+left join Employee e2 on e1.id = e2.id and e1.month - 1 = e2.month
+left join Employee e3 on e3.id = e2.id and e2.month - 1 = e3.month
+where e1.month != emp_cte.max_mth ;
