@@ -583,3 +583,33 @@ select 'Junior' experience, count(employee_id) accepted_candidates
 from cte
 where experience = 'Junior'
 and cum_sal <= (70000 - (select ifnull(max(cum_sal),0) from cte where experience = 'Senior' and cum_sal <=70000))
+
+
+--30. Find Median
+-- Ensure to filter out null data
+select avg(data)
+from (select *
+	, row_number() over (order by id desc) rd
+	, row_number() over (order by id desc) + 1 rd_p_1
+	, row_number() over (order by id desc) - 1 rd_m_1
+	from (
+	select data
+	, row_number() over (order by data asc) id
+	from #temp
+	where data is not null
+	)sub
+	)sub
+where sub.id in (rd, rd+1, rd-1);
+
+-- 31. Find mode - Ensure to filter out nulls. Can be done using top and order by count(*) but what if there are multiple values with the same frequency 
+
+with freq_cte as 
+(select data, freq, max(freq) over () max_freq
+from
+	(select data, count(*) freq
+	from #temp
+	where data is not null
+	group by data)sub)
+select data
+from freq_cte
+where freq = max_freq;
