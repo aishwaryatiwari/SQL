@@ -470,3 +470,51 @@ from users u
 left join orders o on u.user_id = o.buyer_id
 left join items i on o.item_id = i.item_id
 group by u.user_id, u.join_date
+
+--27. Generate rows based on a column value - 
+-- Input: 
+-- Tasks table:
+-- +---------+----------------+
+-- | task_id | subtasks_count |
+-- +---------+----------------+
+-- | 1       | 3              |
+-- | 2       | 2              |
+-- | 3       | 4              |
+-- +---------+----------------+
+-- Executed table:
+-- +---------+------------+
+-- | task_id | subtask_id |
+-- +---------+------------+
+-- | 1       | 2          |
+-- | 3       | 1          |
+-- | 3       | 2          |
+-- | 3       | 3          |
+-- | 3       | 4          |
+-- +---------+------------+
+-- Output: 
+-- +---------+------------+
+-- | task_id | subtask_id |
+-- +---------+------------+
+-- | 1       | 1          |
+-- | 1       | 3          |
+-- | 2       | 1          |
+-- | 2       | 2          |
+-- +---------+------------+
+-- Explanation: 
+-- Task 1 was divided into 3 subtasks (1, 2, 3). Only subtask 2 was executed successfully, so we include (1, 1) and (1, 3) in the answer.
+-- Task 2 was divided into 2 subtasks (1, 2). No subtask was executed successfully, so we include (2, 1) and (2, 2) in the answer.
+-- Task 3 was divided into 4 subtasks (1, 2, 3, 4). All of the subtasks were executed successfully.
+
+with recursive cte as (
+      select task_id, subtasks_count, 1 as subtask_id
+      from tasks
+      union all
+      select task_id, subtasks_count, 1 + subtask_id
+      from cte
+      where subtask_id < subtasks_count
+    )
+select a.task_id, a.subtask_id
+from cte a
+left join Executed b on a.task_id = b.task_id and a.subtask_id = b.subtask_id
+where b.subtask_id is null
+order by 1,2;
