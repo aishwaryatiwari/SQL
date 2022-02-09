@@ -788,7 +788,8 @@ CTE1 AS (
         DENSE_RANK() OVER(PARTITION BY user_id, DATE(call_time) ORDER BY call_time DESC) AS RK
         FROM CTE
         )
-select user_id -- , day, COUNT(DISTINCT recipient_id) -- count the number of people each user spoke to on one day
+-- using distinct for user_id, because we are also grouping by day, and if one user has multiple entries for a day, distinct will be needed. 
+select distinct user_id -- , day, COUNT(DISTINCT recipient_id) -- count the number of people each user spoke to on one day
 from cte1
 WHERE RN = 1 OR RK = 1 -- Filter calls that are either the first or last of each day and each user
 GROUP BY user_id, day
