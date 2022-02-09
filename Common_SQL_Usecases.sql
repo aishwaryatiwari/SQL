@@ -122,6 +122,13 @@ from tbl t1
 join tbl t2 on t2.date between t1.date-2 and t1.date
 group by 1,2;
 
+-- SQL server does not allow date operations like the one above. Instead use the following 
+select a.dt, sum(b.val)
+from dbo.test_tbl a 
+join dbo.test_tbl b on datediff(day, b.dt, a.dt) between 0 and 2
+group by a.dt
+order by 1;
+
 -- Write an SQL query to calculate the cumulative salary summary for every employee in a single unified table.
 -- 
 -- The cumulative salary summary for an employee can be calculated as follows:
