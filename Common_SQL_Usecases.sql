@@ -803,4 +803,84 @@ GROUP BY user_id, day
 having COUNT(DISTINCT recipient_id) = 1 -- if the number of people each user spoke to on any day is only 1, meaning that either the user had only one call that day OR
 -- the first and last person they spoke to were the same, select that user.
 
+-- 35. Pay very close attention to this question!!
+-- Table: Books
+-- +----------------+---------+
+-- | Column Name    | Type    |
+-- +----------------+---------+
+-- | book_id        | int     |
+-- | name           | varchar |
+-- | available_from | date    |
+-- +----------------+---------+
+-- book_id is the primary key of this table.
+--
+-- Table: Orders
+-- +----------------+---------+
+-- | Column Name    | Type    |
+-- +----------------+---------+
+-- | order_id       | int     |
+-- | book_id        | int     |
+-- | quantity       | int     |
+-- | dispatch_date  | date    |
+-- +----------------+---------+
+-- order_id is the primary key of this table. book_id is a foreign key to the Books table.
+-- Write an SQL query that reports the books that have sold less than 10 copies in the last year, excluding books that have been available for less than one month from today. 
+-- Assume today is 2019-06-23.
+-- Return the result table in any order. The query result format is in the following example.
+-- 
+-- Example 1:
+-- 
+-- Input: 
+-- Books table:
+-- +---------+--------------------+----------------+
+-- | book_id | name               | available_from |
+-- +---------+--------------------+----------------+
+-- | 1       | "Kalila And Demna" | 2010-01-01     |
+-- | 2       | "28 Letters"       | 2012-05-12     |
+-- | 3       | "The Hobbit"       | 2019-06-10     |
+-- | 4       | "13 Reasons Why"   | 2019-06-01     |
+-- | 5       | "The Hunger Games" | 2008-09-21     |
+-- +---------+--------------------+----------------+
+-- Orders table:
+-- +----------+---------+----------+---------------+
+-- | order_id | book_id | quantity | dispatch_date |
+-- +----------+---------+----------+---------------+
+-- | 1        | 1       | 2        | 2018-07-26    |
+-- | 2        | 1       | 1        | 2018-11-05    |
+-- | 3        | 3       | 8        | 2019-06-11    |
+-- | 4        | 4       | 6        | 2019-06-05    |
+-- | 5        | 4       | 5        | 2019-06-20    |
+-- | 6        | 5       | 9        | 2009-02-02    |
+-- | 7        | 5       | 8        | 2010-04-13    |
+-- +----------+---------+----------+---------------+
+-- Output: 
+-- +-----------+--------------------+
+-- | book_id   | name               |
+-- +-----------+--------------------+
+-- | 1         | "Kalila And Demna" |
+-- | 2         | "28 Letters"       |
+-- | 5         | "The Hunger Games" |
+-- +-----------+--------------------+
 
+--leetcode link - https://leetcode.com/problems/unpopular-books/
+-- The question is asking for all books that have sold less than 10 copies in the last year. Note that this result should also include books that were not sold at all in the
+-- last year, meaning their dispatch date and quantity would be null. If the dispatch date condition is applied in the where clause, 
+-- it takes away those null rows (for books that never sold any copies) and dates outside the 1 year window (for books that sold in previous years but not in the last year)
+
+--Solution 1 - apply the displatch date condition in the join itself
+select a.book_id, a.name
+from books a
+left join orders o on a.book_id = o.book_id and dispatch_date >'2018-06-23' and dispatch_date <= '2019-06-23'
+where datediff('2019-06-23', a.available_from) > 30
+group by a.book_id, a.name
+having sum(coalesce(o.quantity,0)) < 10;
+
+-- Solution 2 - filter out the orders table for the dispatch dates we care about, then do a left join with the books table. This way books that did not sell any copies in the 
+-- required window of 1 year will have null quantity, which is handled in the coalesce. 
+select a.book_id, a.name
+from books a
+left join (select * from orders 
+	   where dispatch_date >'2018-06-23' and dispatch_date <= '2019-06-23') o on a.book_id = o.book_id 
+where datediff('2019-06-23', a.available_from) > 30
+group by a.book_id, a.name
+having sum(coalesce(o.quantity,0)) < 10
